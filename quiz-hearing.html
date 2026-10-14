@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hearing Sounds &amp; Auditory Scales — CSD 303 practice</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f5f7fb; --card:#ffffff; --ink:#1f2937; --muted:#6b7280;
+  --line:#e5e7eb; --accent:#2563eb; --accent-soft:#eef2ff;
+  --correct:#16a34a; --correct-bg:#e7f7ec; --wrong:#dc2626; --wrong-bg:#fdeaea;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  background:linear-gradient(180deg,#eef2ff 0%,var(--bg) 240px); color:var(--ink);
+  -webkit-font-smoothing:antialiased; line-height:1.55;
+}
+.wrap{max-width:820px; margin:0 auto; padding:0 20px 80px}
+header.hero{
+  background:linear-gradient(120deg,var(--accent),color-mix(in srgb,var(--accent) 55%,#7c3aed));
+  color:#fff; padding:38px 20px 30px; border-radius:0 0 22px 22px;
+  box-shadow:0 10px 30px -12px rgba(37,99,235,.5);
+}
+header.hero .inner{max-width:820px; margin:0 auto; padding:0 20px}
+header.hero .kicker{font-size:13px; letter-spacing:.14em; text-transform:uppercase; opacity:.85; margin:0 0 6px}
+header.hero h1{margin:0; font-size:28px; font-weight:700; letter-spacing:-.01em}
+header.hero p{margin:8px 0 0; opacity:.92; font-size:15px; max-width:620px}
+.progress{height:8px; background:rgba(255,255,255,.28); border-radius:99px; overflow:hidden; margin-top:18px}
+.progress > span{display:block; height:100%; width:0; background:#fff; border-radius:99px; transition:width .35s ease}
+.card{background:var(--card); border:1px solid var(--line); border-radius:16px;
+  padding:22px 22px 20px; margin-top:22px; box-shadow:0 6px 22px -16px rgba(15,23,42,.35)}
+.qnum{display:inline-block; font-size:12px; font-weight:700; letter-spacing:.05em; color:var(--accent);
+  background:var(--accent-soft); padding:4px 10px; border-radius:99px; margin-bottom:10px}
+.qtext{font-size:17px; font-weight:600; margin:0 0 14px}
+.opts{display:flex; flex-direction:column; gap:10px}
+.opt{display:flex; align-items:center; gap:12px; border:1.5px solid var(--line); border-radius:12px;
+  padding:12px 14px; cursor:pointer; transition:border-color .15s, background .15s, transform .05s; font-size:15px}
+.opt:hover{border-color:var(--accent)}
+.opt:active{transform:scale(.995)}
+.opt .mk{width:22px; height:22px; border-radius:50%; border:2px solid var(--line); flex:0 0 auto;
+  display:grid; place-items:center; font-size:13px; color:#fff; font-weight:700}
+.opt.sel{border-color:var(--accent); background:var(--accent-soft)}
+.opt.correct{border-color:var(--correct); background:var(--correct-bg)}
+.opt.correct .mk{background:var(--correct); border-color:var(--correct)}
+.opt.wrong{border-color:var(--wrong); background:var(--wrong-bg)}
+.opt.wrong .mk{background:var(--wrong); border-color:var(--wrong)}
+.opt.locked{cursor:default}
+.feedback{margin-top:14px; padding:14px 16px; border-radius:12px; font-size:14.5px; display:none}
+.feedback.show{display:block}
+.feedback.ok{background:var(--correct-bg); border:1px solid #bbe9c8; color:#14532d}
+.feedback.no{background:var(--wrong-bg); border:1px solid #f3c2c2; color:#7f1d1d}
+.feedback b{font-weight:700}
+.bar{display:flex; gap:12px; margin-top:30px; align-items:center; flex-wrap:wrap}
+button.check, button.submit{
+  font:inherit; font-weight:600; border:none; border-radius:11px; padding:12px 22px; cursor:pointer;
+  background:var(--accent); color:#fff; box-shadow:0 8px 20px -10px var(--accent); transition:filter .15s, transform .05s}
+button.check:hover, button.submit:hover{filter:brightness(1.06)}
+button.check:active, button.submit:active{transform:translateY(1px)}
+button.check:disabled{background:#cbd5e1; box-shadow:none; cursor:default}
+button.submit{background:#111827; box-shadow:0 8px 20px -10px #111827}
+.summary{display:none; margin-top:26px; background:linear-gradient(120deg,#111827,#1f2937); color:#fff;
+  border-radius:18px; padding:28px; text-align:center}
+.summary.show{display:block}
+.summary .score{font-size:46px; font-weight:800; line-height:1}
+.summary .score small{font-size:18px; font-weight:600; opacity:.8}
+.summary .msg{margin-top:10px; font-size:15px; opacity:.92}
+.summary .break{margin-top:16px; font-size:13.5px; opacity:.85}
+.toc{display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:14px; margin-top:24px}
+.toc a{text-decoration:none; color:var(--ink); border:1px solid var(--line); background:#fff; border-radius:14px;
+  padding:16px 18px; display:block; transition:transform .12s, box-shadow .15s, border-color .15s}
+.toc a:hover{transform:translateY(-2px); box-shadow:0 12px 24px -16px rgba(15,23,42,.4); border-color:var(--accent)}
+.toc .t{font-weight:700; font-size:15.5px}
+.toc .d{font-size:13px; color:var(--muted); margin-top:5px}
+.toc .n{font-size:12px; color:var(--accent); font-weight:700; margin-top:10px}
+footer{text-align:center; color:var(--muted); font-size:12.5px; margin-top:40px}
+.home{display:inline-block; margin-top:18px; color:var(--accent); font-weight:600; text-decoration:none}
+</style>
+</head><body>
+<header class="hero"><div class="inner">
+  <p class="kicker">CSD 303 · Lecture 12</p>
+  <h1>Hearing Sounds &amp; Auditory Scales</h1>
+  <p>How the ear transforms sound — limits, equal-loudness, and the nonlinear (Bark) frequency map.</p>
+  <div class="progress"><span id="prog"></span></div>
+</div></header>
+<div class="wrap">
+  <div id="quiz"></div>
+  <div class="bar" style="justify-content:center"><button class="submit" id="submit">Submit quiz</button></div>
+  <div class="summary" id="summary"></div>
+  <a class="home" href="index.html">&larr; Back to all practice sets</a>
+  <footer>CSD 303 Speech Acoustics &amp; Perception &middot; Fall 2026 &middot; built from lecture slides</footer>
+</div>
+<script>
+const Q = [{"q": "What is the approximate range of frequencies a typical human ear can hear?", "options": ["20 Hz – 20,000 Hz", "0 – 1,000 Hz", "200 – 8,000 Hz", "1 – 100 Hz"], "answer": 0, "explain": "Lecture 12 lists the absolute frequency limit as roughly 20 Hz at the low end and 20,000 Hz at the high end."}, {"q": "On an equal-loudness contour, where is human hearing most sensitive?", "options": ["Around 20 Hz", "Around 2.7–5 kHz (upper-mid)", "Around 15 kHz", "Sensitivity is flat across all frequencies"], "answer": 1, "explain": "The outer-ear resonance (a ~2.5 cm closed-open tube) drives peak sensitivity in the ~2.7–5 kHz region, which is why equal-loudness curves dip there."}, {"q": "Which frequency scale is psychoacoustic, designed so that equal intervals sound roughly equally different everywhere on the scale?", "options": ["The Hz scale", "The Bark scale", "The dB scale", "The MIDI scale"], "answer": 1, "explain": "The Bark scale stretches low frequencies and compresses high frequencies so a 0.1-Bark step sounds about as different at 2 Bark as at 22 Bark — unlike raw Hz."}, {"q": "In the tone-discrimination demo, a 10-Hz gap is easy at 200 Hz but inaudible at 10,000 Hz. Why?", "options": ["High frequencies are louder", "The cochlea represents frequency nonlinearly — more resolution at low frequencies", "The ear is线性 (linear) in frequency", "200 Hz tones are pure tones"], "answer": 1, "explain": "Frequency is analyzed tonotopically on the basilar membrane; the mapping is compressed at high frequencies, so a fixed Hz step means far less perceptual change up high."}, {"q": "How are frequencies laid out along the cochlea / basilar membrane?", "options": ["Linearly (equal mm per Hz)", "Nonlinearly — compressed toward the high end", "Randomly", "Only low frequencies are represented"], "answer": 1, "explain": "Lecture 12 stresses the auditory representation of frequency is nonlinear, primarily due to the cochlea's frequency-to-place mapping."}, {"q": "The outer ear (pinna + ear canal) behaves approximately like what kind of resonator?", "options": ["An open-open tube ~10 cm long", "A closed-open tube ~2.5 cm long", "A Helmholtz resonator only", "A parabolic dish"], "answer": 1, "explain": "The ~2.5 cm ear canal is modeled as a closed-open tube, resonating in the 2.7–5 kHz band that gives our peak sensitivity."}, {"q": "For timing, sounds closer together than about what interval are hard to order or tell apart?", "options": ["1 ms", "20 ms", "200 ms", "1 second"], "answer": 1, "explain": "Lecture 12 gives the timing discrimination threshold as < 20 ms — below that we can't reliably order tones or tell if they're simultaneous."}, {"q": "If you play 60 dB tones at 100 Hz, 1000 Hz, and 10,000 Hz, are they equally loud?", "options": ["Yes, 60 dB is 60 dB", "No — equal acoustic intensity is not equal loudness", "Only at night", "Yes, loudness is frequency-independent"], "answer": 1, "explain": "Equal-loudness curves show you must boost low and high frequencies above mid frequencies to be perceived as equally loud; 60 dB SPL is not 60 phons everywhere."}];
+const answered = new Array(Q.length).fill(false);
+const root = document.getElementById('quiz');
+const prog = document.getElementById('prog');
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+Q.forEach((q, qi)=>{
+  const card = document.createElement('div'); card.className='card';
+  let opts = q.options.map((o,i)=>`
+    <div class="opt" data-i="${i}">
+      <span class="mk">${String.fromCharCode(65+i)}</span><span>${esc(o)}</span>
+    </div>`).join('');
+  card.innerHTML = `<span class="qnum">Question ${qi+1}</span>
+    <p class="qtext">${esc(q.q)}</p>
+    <div class="opts">${opts}</div>
+    <div class="bar"><button class="check">Check answer</button></div>
+    <div class="feedback"></div>`;
+  root.appendChild(card);
+  const optEls = [...card.querySelectorAll('.opt')];
+  const btn = card.querySelector('.check');
+  const fb = card.querySelector('.feedback');
+  let picked = -1;
+  optEls.forEach(el=>{
+    el.addEventListener('click', ()=>{
+      if(answered[qi]) return;
+      optEls.forEach(e=>e.classList.remove('sel'));
+      el.classList.add('sel'); picked = +el.dataset.i; btn.disabled=false;
+    });
+  });
+  btn.disabled = true;
+  btn.addEventListener('click', ()=>{
+    if(picked<0 || answered[qi]) return;
+    answered[qi]=true;
+    const ok = picked === q.answer;
+    optEls.forEach((el,i)=>{
+      el.classList.add('locked');
+      if(i===q.answer) el.classList.add('correct');
+      if(i===picked && i!==q.answer) el.classList.add('wrong');
+    });
+    btn.disabled = true;
+    fb.className = 'feedback show ' + (ok?'ok':'no');
+    fb.innerHTML = (ok? '<b>Correct!</b> ' : '<b>Not quite.</b> ') + esc(q.explain);
+    updateProg();
+  });
+});
+function updateProg(){
+  const done = answered.filter(Boolean).length;
+  prog.style.width = (done/Q.length*100)+'%';
+}
+const submit = document.getElementById('submit');
+const summary = document.getElementById('summary');
+submit.addEventListener('click', ()=>{
+  const done = answered.filter(Boolean).length;
+  if(done < Q.length){ alert('Please answer all '+Q.length+' questions first ('+done+' done).'); return; }
+  // a card is correct iff the user never selected a wrong option
+  let correct = 0;
+  document.querySelectorAll('.card').forEach(c=>{
+    if(!c.querySelector('.opt.wrong')) correct++;
+  });
+  const pct = Math.round(correct/Q.length*100);
+  summary.className='summary show';
+  let msg = pct===100? "Flawless — you've got this material cold."
+          : pct>=80? "Strong work. Review the ones you missed and you're set."
+          : pct>=60? "Solid base — revisit the feedback on the missed items."
+          : "Worth another pass through the lecture; read each explanation carefully.";
+  summary.innerHTML = `<div class="score">${correct}<small> / ${Q.length}</small></div>
+    <div class="msg">${msg}</div>
+    <div class="break">${pct}% correct &middot; generated from CSD 303 (Fall 2026) lecture slides</div>`;
+  summary.scrollIntoView({behavior:'smooth'});
+});
+</script>
+</body></html>
