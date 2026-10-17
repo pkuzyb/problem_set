@@ -93,11 +93,6 @@ footer{text-align:center; color:var(--muted); font-size:12.5px; margin-top:40px}
   <div class="summary" id="summary"></div>
 </div>
 <script>
-/* ===== EDIT YOUR QUESTIONS BETWEEN THESE MARKERS =====
-   q:       the question text
-   options:[i, j, ...] for multi-select "choose all that apply" questions
-   explain: shown after "Check answer"
-====================================================== */
 const Q = [  {
   q: "Soramimi and mondegreens are examples of... (choose all that apply)",
   options:[
@@ -106,7 +101,7 @@ const Q = [  {
     "lexical effects in speech perception",
     "categorical perception",
   ],
-  answers: [0, 1, 2], // multi-select: 0 = Homophonic mishearing, 1 = Top-down processing, 2 = Lexical effects in speech perception
+  answers: [0, 1, 2],
 },
   {
     q: "If the y-axis label is '% t response', listeners' phoneme identification curve will shift toward the ___ in a /daʃ/-/taʃ/ (dash–TASH) continuum.",
@@ -311,6 +306,22 @@ submit.addEventListener('click', ()=>{
   let correct = 0;
   for(let i=0;i<Q.length;i++){ if(iscorrect[i]) correct++; }
   const pct = Math.round(correct/Q.length*100);
+
+  // === AUTOMATIC LOGGING TO FIREBASE ===
+  const FIREBASE_URL = "https://csd303-practiceproblem3-default-rtdb.firebaseio.com/submissions.json";
+  fetch(FIREBASE_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      timestamp: new Date().toISOString(),
+      score: correct,
+      total: Q.length,
+      percentage: pct,
+      answers: iscorrect
+    })
+  }).catch(err => console.error("Firebase error:", err));
+  // =====================================
+
   summary.className='summary show';
   let msg = pct===100? "Flawless - you've got this material cold."
           : pct>=80? "Strong work. Review the ones you missed and you're set."

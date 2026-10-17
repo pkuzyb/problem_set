@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CSD 303 - Live Lecture Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Georgia&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --bg: #f2f7f3; --card: #ffffff; --ink: #22301f;
+      --accent: #3b7f3c; --accent-dark: #2b4f2c; --line: #d4e3cf;
+    }
+    body {
+      margin: 0; font-family: 'Poppins', sans-serif;
+      background: var(--bg); color: var(--ink); padding: 20px;
+    }
+    .wrap { max-width: 850px; margin: 0 auto; }
+    header {
+      background: linear-gradient(120deg, var(--accent-dark), var(--accent));
+      color: #fff; padding: 24px; border-radius: 16px; margin-bottom: 24px; text-align: center;
+    }
+    header h1 { margin: 0; font-family: 'Georgia', serif; font-size: 26px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+    .metric-card {
+      background: var(--card); border: 1px solid var(--line);
+      border-radius: 14px; padding: 20px; text-align: center;
+    }
+    .metric-title { font-size: 13px; text-transform: uppercase; color: #5b6b56; font-weight: 600; }
+    .metric-val { font-size: 42px; font-weight: 700; color: var(--accent-dark); margin-top: 4px; }
+    .chart-card {
+      background: var(--card); border: 1px solid var(--line);
+      border-radius: 14px; padding: 24px;
+    }
+    .chart-card h2 { margin-top: 0; font-size: 18px; color: var(--accent-dark); }
+    .refresh-btn {
+      display: block; width: 100%; margin-top: 20px; padding: 12px;
+      background: var(--accent); color: #fff; border: none; border-radius: 10px;
+      font-weight: 600; cursor: pointer; font-size: 14px;
+    }
+    .refresh-btn:hover { background: var(--accent-dark); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>CSD 303 - Live Lecture Analytics</h1>
+    </header>
+
+    <div class="grid">
+      <div class="metric-card">
+        <div class="metric-title">Total Submissions</div>
+        <div class="metric-val" id="total-sub">0</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-title">Average Class Score</div>
+        <div class="metric-val" id="avg-score">0%</div>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <h2>Question Accuracy Breakdown (% Correct)</h2>
+      <canvas id="accuracyChart"></canvas>
+      <button class="refresh-btn" onclick="fetchStats()">Refresh Live Data</button>
+    </div>
+  </div>
+
+  <script>
+    const FIREBASE_URL = "https://csd303-practiceproblem3-default-rtdb.firebaseio.com/submissions.json";
+    let chartInstance = null;
+
+    async function fetchStats() {
+      try {
+        const res = await fetch(FIREBASE_URL);
+        const data = await res.json();
+        
+        if (!data) {
+          document.getElementById('total-sub').innerText = '0';
+          document.getElementById('avg-score').innerText = '0%';
+          return;
+        }
+
+        const submissions = Object.values(data);
+        const totalSubmissions = submissions.length;
+        document.getElementById('total-sub').innerText = totalSubmissions;
+
+        const totalPct = submissions.reduce((acc, curr) => acc + (curr.percentage || 0), 0);
+        document.getElementById('avg-score').innerText = Math.round(totalPct / totalSubmissions) + '%';
+
+        const numQuestions = submissions[0].answers.length;
+        const correctCounts = new Array(numQuestions).fill(0);
+
+        submissions.forEach(s => {
+          if (Array.isArray(s.answers)) {
+            s.answers.forEach((isOk, idx) => {
+              if (isOk) correctCounts[idx]++;
+            });
+          }
+        });
+
+        const percentages = correctCounts.map(count => Math.round((count / totalSubmissions) * 100));
+        const labels = correctCounts.map((_, i) => `Q${i + 1}`);
+
+        renderChart(labels, percentages);
+      } catch (err) {
+        console.error("Failed to load dashboard data:", err);
+      }
+    }
+
+    function renderChart(labels, dataValues) {
+      const ctx = document.getElementById('accuracyChart').getContext('2d');
+      if (chartInstance) chartInstance.destroy();
+
+      chartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: '% Correct',
+            data: dataValues,
+            backgroundColor: '#3b7f3c',
+            borderRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: { beginAtZero: true, max: 100, ticks: { callback: v => v + '%' } }
+          }
+        }
+      });
+    }
+
+    fetchStats();
+    // Auto-refresh stats every 10 seconds
+    setInterval(fetchStats, 10000);
+  </script>
+</body>
+</html>
