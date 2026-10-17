@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>practice quiz 1</title>
+<title>practice problem set</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Georgia&display=swap" rel="stylesheet">
 <style>
@@ -33,6 +33,7 @@ header.hero p{margin:8px 0 0; opacity:.92; font-size:15px; max-width:640px}
 .qnum{display:inline-block; font-size:12px; font-weight:700; letter-spacing:.05em; color:var(--accent-dark);
   background:var(--accent-soft); padding:4px 10px; border-radius:99px; margin-bottom:10px}
 .qtext{font-size:17px; font-weight:600; margin:0 0 14px}
+.qtext .blank{display:inline-block; width:68px; height:1.05em; border-bottom:2px solid var(--ink); margin:0 2px; vertical-align:-0.12em}
 .opts{display:flex; flex-direction:column; gap:10px}
 .opt{display:flex; align-items:center; gap:12px; border:1.5px solid var(--line); border-radius:12px;
   padding:12px 14px; cursor:pointer; transition:border-color .15s, background .15s, transform .05s; font-size:15px}
@@ -77,12 +78,13 @@ button.submit{background:var(--accent-dark); box-shadow:0 8px 20px -10px var(--a
 .summary .score small{font-size:18px; font-weight:600; opacity:.8}
 .summary .msg{margin-top:10px; font-size:15px; opacity:.95}
 .summary .break{margin-top:16px; font-size:13.5px; opacity:.85}
+.opts.multi .opt .mk{border-radius:4px}
 footer{text-align:center; color:var(--muted); font-size:12.5px; margin-top:40px}
 </style>
 </head><body>
 <header class="hero"><div class="inner">
   <p class="kicker">CSD 303 - Unit 2</p>
-  <h1>Practice Quiz 1</h1>
+  <h1>Practice Problem Set</h1>
   <div class="progress"><span id="prog"></span></div>
 </div></header>
 <div class="wrap">
@@ -93,24 +95,22 @@ footer{text-align:center; color:var(--muted); font-size:12.5px; margin-top:40px}
 <script>
 /* ===== EDIT YOUR QUESTIONS BETWEEN THESE MARKERS =====
    q:       the question text
-   options: the answer choices (one string each)
-   answer:  index (0-based) of the CORRECT option (single-select)
-   answers: [i, j, ...] for multi-select "choose all that apply" questions
+   options:[i, j, ...] for multi-select "choose all that apply" questions
    explain: shown after "Check answer"
 ====================================================== */
 const Q = [  {
   q: "Soramimi and mondegreens are examples of... (choose all that apply)",
-  options: [
-    "Homophonic mishearing",
-    "Top-down processing",
-    "Sine wave speech",
-    "Categorical perception",
+  options:[
+    "homophonic mishearing",
+    "top-down processing",
+    "lexical effects in speech perception",
+    "categorical perception",
   ],
-  answers: [0, 1], // multi-select: 0 = Homophonic mishearing, 1 = Top-down processing
+  answers: [0, 1, 2], // multi-select: 0 = Homophonic mishearing, 1 = Top-down processing, 2 = Lexical effects in speech perception
 },
   {
-    q: "If the y axis label is t \% response, listeners' phoneme identification curve will shift towards the ___ end in a dash-tash continuum?.",
-    options: [
+    q: "If the y-axis label is '% t response', listeners' phoneme identification curve will shift toward the ___ in a /daʃ/-/taʃ/ (dash–TASH) continuum.",
+    options:[
       "word end",
       "nonword end",
       "center",
@@ -120,7 +120,7 @@ const Q = [  {
   },
   {
     q: "Categorical perception means: between-category discrimination is ___, within-category discrimination is ___.",
-    options: [
+    options:[
       "good / poor",
       "poor / good",
       "impossible / impossible",
@@ -129,43 +129,43 @@ const Q = [  {
     answer: 0,
   },
   {
-    q: "The phonemic restoration effect (Warren, 1970): a phoneme replaced by a cough is...",
-    options: [
-      "Always noticed and located",
-      "Restored via top-down knowledge; listeners don't notice the gap",
-      "Only restored by trained linguists",
-      "Impossible to restore",
+    q: "What happens when a hiccup replaces one of the phonemes in your sentence?",
+    options:[
+      "Your friends still hear the intended phoneme because your top-down linguistic knowledge masks the hiccup.",
+      "Your friends won't notice any phoneme missing.",
+      "Only speech-language pathologists can restore the missing phoneme.",
+      "Your friends will laugh because it sounds like a gap with a hiccup",
     ],
     answer: 1,
   },
   {
-    q: "'Yanny vs Laurel' is explained by which frequencies you attend to: low frequencies sound like ___, high frequencies sound like ___.",
-    options: [
-      "Yanny / Laurel",
-      "Laurel / Yanny",
-      "both / neither",
-      "Laurel / Laurel",
+    q: "In the Yanny/Laurel spectrogram confusion, the low-quality recording makes it plausible that F3 is mistaken for...",
+    options:[
+      "F1",
+      "F2",
+      "the fundamental frequency",
+      "silence",
     ],
     answer: 1,
   },
   {
     q: "Whistled languages are...",
-    options: [
-      "Brand-new invented codes",
-      "Whistled versions of an existing spoken language (you must speak it to understand)",
-      "Created by animals",
-      "Musical sounds",
+    options:[
+      "invented codes for communication with wild animals",
+      "whistled versions of an existing spoken language",
+      "created by aliens",
+      "musical sounds of the language for entertainment",
     ],
     answer: 1,
   },
   {
-    q: "Consider the vocal-tract tube model shown below (back cavity 6 cm, closed at the glottis; front cavity 10 cm, open at the lips; c = 34,000 cm/s). Treating each cavity as a closed-open tube, calculate the three lowest resonance frequencies of the back cavity and of the front cavity, then list the formants F1, F2, F3 of the whole vocal tract (the vowel). Enter frequencies in Hz (round to the nearest whole number).",
+    q: "Consider the vocal-tract tube model shown below (c = 34,000 cm/s). Treating each cavity as a closed-open tube, calculate the three lowest resonance frequencies of the back cavity and of the front cavity, then list the formants F1, F2, F3 of the whole vocal tract (the vowel). Enter frequencies in Hz (round to the nearest whole number).",
     fig: `<img src="tube_figure.png" alt="Two-tube vocal tract model: back cavity 6 cm, front cavity 10 cm" style="max-width:480px;width:auto;height:auto;display:block;margin:2px auto 10px">`,
     type: "fill",
     fields: [
       {group:"Back cavity resonances (closed at glottis, L = 6 cm)", label:"Back F1 (Hz)", answer:1417},
-      {group:"Back cavity resonances (closed at glottis, L = 6 cm)", label:"Back F2 (Hz)", answer:4250},
-      {group:"Back cavity resonances (closed at glottis, L = 6 cm)", label:"Back F3 (Hz)", answer:7083},
+      {group:"Back cavity resonances (closed at glottis, L = 6 cm)", label:"Back F2 (Hz)", answer:4251},
+      {group:"Back cavity resonances (closed at glottis, L = 6 cm)", label:"Back F3 (Hz)", answer:7085},
       {group:"Front cavity resonances (open at lips, L = 10 cm)", label:"Front F1 (Hz)", answer:850},
       {group:"Front cavity resonances (open at lips, L = 10 cm)", label:"Front F2 (Hz)", answer:2550},
       {group:"Front cavity resonances (open at lips, L = 10 cm)", label:"Front F3 (Hz)", answer:4250},
@@ -173,7 +173,6 @@ const Q = [  {
       {group:"Whole vocal tract / vowel formants (merge & sort all six)", label:"Vowel F2 (Hz)", answer:1417},
       {group:"Whole vocal tract / vowel formants (merge & sort all six)", label:"Vowel F3 (Hz)", answer:2550},
     ],
-    explain: "Closed-open (quarter-wave) tube: f_n = c(2n-1)/(4L), c = 34,000 cm/s. Back cavity (L = 6 cm): F1 = 34000/(4*6) = 1417 Hz, F2 = 3*34000/(4*6) = 4250 Hz, F3 = 5*34000/(4*6) = 7083 Hz. Front cavity (L = 10 cm): F1 = 34000/(4*10) = 850 Hz, F2 = 2550 Hz, F3 = 4250 Hz. Merge all six and sort (850, 1417, 2550, 4250, 4250, 7083), so the vowel formants are F1 = 850 Hz, F2 = 1417 Hz, F3 = 2550 Hz."
   },
 ];
 
@@ -182,8 +181,10 @@ const iscorrect = new Array(Q.length).fill(false);
 const root = document.getElementById('quiz');
 const prog = document.getElementById('prog');
 function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function blankify(s){return esc(s).replace(/_{2,}/g, '<span class="blank"></span>');}
 Q.forEach((q, qi)=>{
-  const card = document.createElement('div'); card.className='card';
+  const multi = Array.isArray(q.answers);
+  const card = document.createElement('div'); card.className='card' + (multi ? ' multi' : '');
   let body;
   if(q.type === 'fill'){
     let html = '<div class="fill">'; let cur = null;
@@ -202,10 +203,10 @@ Q.forEach((q, qi)=>{
     <div class="opt" data-i="${i}">
       <span class="mk">${String.fromCharCode(65+i)}</span><span>${esc(o)}</span>
     </div>`).join('');
-    body = `<div class="opts">${opts}</div>`;
+    body = `<div class="opts${multi?' multi':''}">${opts}</div>`;
   }
   card.innerHTML = `<span class="qnum">Question ${qi+1}</span>
-    <p class="qtext">${esc(q.q)}</p>
+    <p class="qtext">${blankify(q.q)}</p>
     ${q.fig||''}
     ${body}
     <div class="bar"><button class="check">Check answer</button></div>
@@ -236,7 +237,6 @@ Q.forEach((q, qi)=>{
       updateProg();
     });
   } else {
-    const multi = Array.isArray(q.answers);
     const correctSet = multi ? q.answers.slice().sort((a,b)=>a-b) : [q.answer];
     const optEls = [...card.querySelectorAll('.opt')];
     if(multi){
@@ -308,8 +308,6 @@ function updateProg(){
 const submit = document.getElementById('submit');
 const summary = document.getElementById('summary');
 submit.addEventListener('click', ()=>{
-  const done = answered.filter(Boolean).length;
-  if(done < Q.length){ alert('Please answer all '+Q.length+' questions first ('+done+' done).'); return; }
   let correct = 0;
   for(let i=0;i<Q.length;i++){ if(iscorrect[i]) correct++; }
   const pct = Math.round(correct/Q.length*100);
@@ -317,7 +315,7 @@ submit.addEventListener('click', ()=>{
   let msg = pct===100? "Flawless - you've got this material cold."
           : pct>=80? "Strong work. Review the ones you missed and you're set."
           : pct>=60? "Solid base - revisit the feedback on the missed items."
-          : "Worth another pass through the lecture; read each explanation carefully.";
+          : "Worth another pass through the materials";
   summary.innerHTML = `<div class="score">${correct}<small> / ${Q.length}</small></div>
     <div class="msg">${msg}</div>
     <div class="break">${pct}% correct</div>`;
