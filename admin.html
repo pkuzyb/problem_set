@@ -31,7 +31,7 @@
     .metric-val { font-size: 42px; font-weight: 700; color: var(--accent-dark); margin-top: 4px; }
     .chart-card {
       background: var(--card); border: 1px solid var(--line);
-      border-radius: 14px; padding: 24px;
+      border-radius: 14px; padding: 24px; margin-bottom: 24px;
     }
     .chart-card h2 { margin-top: 0; font-size: 18px; color: var(--accent-dark); }
     .refresh-btn {
@@ -59,16 +59,24 @@
       </div>
     </div>
 
+    <!-- Chart 1: Accuracy on Graded Questions (Q1 - Q7) -->
     <div class="chart-card">
-      <h2>Question Accuracy Breakdown (% Correct)</h2>
+      <h2>Graded Question Accuracy (Q1–Q7)</h2>
       <canvas id="accuracyChart"></canvas>
+    </div>
+
+    <!-- Chart 2: Survey Vote Proportions for Question 8 -->
+    <div class="chart-card">
+      <h2>Question 8 Vote Proportions (Survey)</h2>
+      <canvas id="surveyChart"></canvas>
       <button class="refresh-btn" onclick="fetchStats()">Refresh Live Data</button>
     </div>
   </div>
 
   <script>
     const FIREBASE_URL = "https://csd303-practiceproblem3-default-rtdb.firebaseio.com/submissions.json";
-    let chartInstance = null;
+    let accuracyChartInstance = null;
+    let surveyChartInstance = null;
 
     async function fetchStats() {
       try {
@@ -85,34 +93,51 @@
         const totalSubmissions = submissions.length;
         document.getElementById('total-sub').innerText = totalSubmissions;
 
+        // Calculate Average Score across class
         const totalPct = submissions.reduce((acc, curr) => acc + (curr.percentage || 0), 0);
         document.getElementById('avg-score').innerText = Math.round(totalPct / totalSubmissions) + '%';
 
-        const numQuestions = submissions[0].answers.length;
-        const correctCounts = new Array(numQuestions).fill(0);
+        // 1. Calculate accuracy for Graded Questions (Q1 to Q7)
+        const numGradedQuestions = 7;
+        const correctCounts = new Array(numGradedQuestions).fill(0);
+
+        // 2. Count votes for Question 8 survey ("ungraded" = index 0, "graded" = index 1)
+        let ungradedVotes = 0;
+        let gradedVotes = 0;
 
         submissions.forEach(s => {
-          if (Array.isArray(s.answers)) {
-            s.answers.forEach((isOk, idx) => {
-              if (isOk) correctCounts[idx]++;
-            });
+          // Backward compatibility check for iscorrect vs answers
+          const isCorrectArr = s.iscorrect || s.answers || [];
+          
+          for (let i = 0; i < numGradedQuestions; i++) {
+            if (isCorrectArr[i] === true) correctCounts[i]++;
+          }
+
+          // Read raw user response for Question 8 (index 7)
+          if (s.userResponses && s.userResponses[7] !== undefined) {
+            const resp = s.userResponses[7];
+            if (resp === 0) ungradedVotes++;
+            else if (resp === 1) gradedVotes++;
           }
         });
 
-        const percentages = correctCounts.map(count => Math.round((count / totalSubmissions) * 100));
+        const accuracyPct = correctCounts.map(count => Math.round((count / totalSubmissions) * 100));
         const labels = correctCounts.map((_, i) => `Q${i + 1}`);
 
-        renderChart(labels, percentages);
+        renderAccuracyChart(labels, accuracyPct);
+        renderSurveyChart(ungradedVotes, gradedVotes);
+
       } catch (err) {
         console.error("Failed to load dashboard data:", err);
       }
     }
 
-    function renderChart(labels, dataValues) {
+    // Render Bar Chart for Questions 1 to 7
+    function renderAccuracyChart(labels, dataValues) {
       const ctx = document.getElementById('accuracyChart').getContext('2d');
-      if (chartInstance) chartInstance.destroy();
+      if (accuracyChartInstance) accuracyChartInstance.destroy();
 
-      chartInstance = new Chart(ctx, {
+      accuracyChartInstance = new Chart(ctx, {
         type: 'bar',
         data: {
           labels: labels,
@@ -127,6 +152,34 @@
           responsive: true,
           scales: {
             y: { beginAtZero: true, max: 100, ticks: { callback: v => v + '%' } }
+          }
+        }
+      });
+    }
+
+    // Render Vote Breakdown Chart for Question 8
+    function renderSurveyChart(ungraded, graded) {
+      const ctx = document.getElementById('surveyChart').getContext('2d');
+      if (surveyChartInstance) surveyChartInstance.destroy();
+
+      surveyChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['practice quiz', 'graded'],
+          datasets: [{
+            label: 'Total Votes',
+            data: [ungraded, graded],
+            backgroundColor: ['#5b6b56', '#2b4f2c'],
+            borderRadius: 6
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            y: { beginAtZero: true, ticks: { precision: 0 } }
           }
         }
       });

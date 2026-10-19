@@ -93,16 +93,17 @@ footer{text-align:center; color:var(--muted); font-size:12.5px; margin-top:40px}
   <div class="summary" id="summary"></div>
 </div>
 <script>
-const Q = [  {
-  q: "Soramimi and mondegreens are examples of... (choose all that apply)",
-  options:[
-    "homophonic mishearing",
-    "top-down processing",
-    "lexical effects in speech perception",
-    "categorical perception",
-  ],
-  answers: [0, 1, 2],
-},
+const Q = [
+  {
+    q: "Soramimi and mondegreens are examples of... (choose all that apply)",
+    options:[
+      "homophonic mishearing",
+      "top-down processing",
+      "lexical effects in speech perception",
+      "categorical perception",
+    ],
+    answers: [0, 1, 2],
+  },
   {
     q: "If the y-axis label is '% t response', listeners' phoneme identification curve will shift toward the ___ in a /daʃ/-/taʃ/ (dash–TASH) continuum.",
     options:[
@@ -169,18 +170,31 @@ const Q = [  {
       {group:"Whole vocal tract / vowel formants (merge & sort all six)", label:"Vowel F3 (Hz)", answer:2550},
     ],
   },
+  {
+    q: "What format do you want quiz 4 to be?",
+    options:[
+      "practice quiz",
+      "graded"
+    ],
+    survey: true // UNGRADED SURVEY QUESTION (Recorded in Database, Excluded from Grade)
+  },
 ];
 
 const answered = new Array(Q.length).fill(false);
 const iscorrect = new Array(Q.length).fill(false);
+const userResponses = new Array(Q.length).fill(null); // Stores exact choices for database analysis
 const root = document.getElementById('quiz');
 const prog = document.getElementById('prog');
+
 function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function blankify(s){return esc(s).replace(/_{2,}/g, '<span class="blank"></span>');}
+
 Q.forEach((q, qi)=>{
-  const multi = Array.isArray(q.answers);
-  const card = document.createElement('div'); card.className='card' + (multi ? ' multi' : '');
+  const isMulti = Array.isArray(q.answers);
+  const card = document.createElement('div'); 
+  card.className = 'card' + (isMulti ? ' multi' : '');
   let body;
+  
   if(q.type === 'fill'){
     let html = '<div class="fill">'; let cur = null;
     q.fields.forEach((f,i)=>{
@@ -198,31 +212,39 @@ Q.forEach((q, qi)=>{
     <div class="opt" data-i="${i}">
       <span class="mk">${String.fromCharCode(65+i)}</span><span>${esc(o)}</span>
     </div>`).join('');
-    body = `<div class="opts${multi?' multi':''}">${opts}</div>`;
+    body = `<div class="opts${isMulti?' multi':''}">${opts}</div>`;
   }
-  card.innerHTML = `<span class="qnum">Question ${qi+1}</span>
+  
+  card.innerHTML = `<span class="qnum">Question ${qi+1}${q.survey ? ' (Survey Question)' : ''}</span>
     <p class="qtext">${blankify(q.q)}</p>
     ${q.fig||''}
     ${body}
     <div class="bar"><button class="check">Check answer</button></div>
     <div class="feedback"></div>`;
   root.appendChild(card);
+  
   const btn = card.querySelector('.check');
   const fb = card.querySelector('.feedback');
+  
   if(q.type === 'fill'){
     btn.addEventListener('click', ()=>{
       if(answered[qi]) return;
       const inputs = [...card.querySelectorAll('.fillin')];
       let allOk = true; let exp = [];
+      const values = [];
       inputs.forEach(inp=>{
         const k = +inp.dataset.k; const ans = q.fields[k].answer;
         const v = parseFloat(inp.value);
+        values.push(v);
         const ok = !isNaN(v) && Math.abs(v - ans) <= 40;
         inp.disabled = true; inp.classList.add('locked');
         if(ok){ inp.classList.add('correct'); }
         else { inp.classList.add('wrong'); allOk = false; exp.push(q.fields[k].label+' = '+ans+' Hz'); }
       });
-      answered[qi] = true; iscorrect[qi] = allOk; btn.disabled = true;
+      answered[qi] = true; 
+      iscorrect[qi] = allOk; 
+      userResponses[qi] = values;
+      btn.disabled = true;
       fb.className = 'feedback show ' + (allOk?'ok':'no');
       if(allOk){
         fb.innerHTML = '<b>Correct!</b>' + (q.explain ? ' ' + esc(q.explain) : '');
@@ -231,81 +253,110 @@ Q.forEach((q, qi)=>{
       }
       updateProg();
     });
-  } else {
-    const correctSet = multi ? q.answers.slice().sort((a,b)=>a-b) : [q.answer];
+  } else if(isMulti) {
+    const correctSet = q.answers.slice().sort((a,b)=>a-b);
     const optEls = [...card.querySelectorAll('.opt')];
-    if(multi){
-      const sel = new Set();
-      optEls.forEach(el=>{
-        el.addEventListener('click', ()=>{
-          if(answered[qi]) return;
-          const i = +el.dataset.i;
-          if(sel.has(i)){ sel.delete(i); el.classList.remove('sel'); }
-          else { sel.add(i); el.classList.add('sel'); }
-          btn.disabled = sel.size === 0;
-        });
+    const sel = new Set();
+    
+    optEls.forEach(el=>{
+      el.addEventListener('click', ()=>{
+        if(answered[qi]) return;
+        const i = +el.dataset.i;
+        if(sel.has(i)){ sel.delete(i); el.classList.remove('sel'); }
+        else { sel.add(i); el.classList.add('sel'); }
+        btn.disabled = sel.size === 0;
       });
+    });
+    
+    btn.disabled = true;
+    btn.addEventListener('click', ()=>{
+      if(answered[qi] || sel.size === 0) return;
+      answered[qi] = true;
+      const chosen = [...sel].sort((a,b)=>a-b);
+      userResponses[qi] = chosen;
+      const ok = chosen.length === correctSet.length && chosen.every((v,idx)=>v===correctSet[idx]);
+      iscorrect[qi] = ok;
+      
+      optEls.forEach((el,i)=>{
+        el.classList.add('locked');
+        const isCorr = correctSet.indexOf(i) !== -1;
+        if(isCorr) el.classList.add('correct');
+        if(sel.has(i) && !isCorr) el.classList.add('wrong');
+      });
+      
       btn.disabled = true;
-      btn.addEventListener('click', ()=>{
-        if(answered[qi] || sel.size === 0) return;
-        answered[qi] = true;
-        const chosen = [...sel].sort((a,b)=>a-b);
-        const ok = chosen.length === correctSet.length && chosen.every((v,idx)=>v===correctSet[idx]);
+      fb.className = 'feedback show ' + (ok?'ok':'no');
+      if(ok){
+        fb.innerHTML = '<b>Correct!</b>' + (q.explain ? ' ' + esc(q.explain) : '');
+      } else {
+        const letters = correctSet.map(i=>String.fromCharCode(65+i)).join(', ');
+        fb.innerHTML = '<b>Not quite.</b> Correct choice(s): ' + letters + '.' + (q.explain ? ' ' + esc(q.explain) : '');
+      }
+      updateProg();
+    });
+  } else {
+    // Single choice options
+    const optEls = [...card.querySelectorAll('.opt')];
+    let picked = -1;
+    
+    optEls.forEach(el=>{
+      el.addEventListener('click', ()=>{
+        if(answered[qi]) return;
+        optEls.forEach(e=>e.classList.remove('sel'));
+        el.classList.add('sel'); 
+        picked = +el.dataset.i; 
+        btn.disabled = false;
+      });
+    });
+    
+    btn.disabled = true;
+    btn.addEventListener('click', ()=>{
+      if(picked < 0 || answered[qi]) return;
+      answered[qi] = true;
+      userResponses[qi] = picked; // Save index selected (e.g. 0 or 1)
+      
+      if(q.survey) {
+        // UNGRADED / SURVEY QUESTION LOGIC
+        optEls.forEach((el, i)=>{
+          el.classList.add('locked');
+          if(i === picked) el.classList.add('correct');
+        });
+        btn.disabled = true;
+        fb.className = 'feedback show ok';
+        fb.innerHTML = '<b>Response recorded!</b> Thank you for your feedback.';
+      } else {
+        // GRADED QUESTION LOGIC
+        const ok = picked === q.answer;
         iscorrect[qi] = ok;
         optEls.forEach((el,i)=>{
           el.classList.add('locked');
-          const isCorr = correctSet.indexOf(i) !== -1;
-          if(isCorr) el.classList.add('correct');
-          if(sel.has(i) && !isCorr) el.classList.add('wrong');
-        });
-        btn.disabled = true;
-        fb.className = 'feedback show ' + (ok?'ok':'no');
-        if(ok){
-          fb.innerHTML = '<b>Correct!</b>' + (q.explain ? ' ' + esc(q.explain) : '');
-        } else {
-          const letters = correctSet.map(i=>String.fromCharCode(65+i)).join(', ');
-          fb.innerHTML = '<b>Not quite.</b> Correct choice(s): ' + letters + '.' + (q.explain ? ' ' + esc(q.explain) : '');
-        }
-        updateProg();
-      });
-    } else {
-      let picked = -1;
-      optEls.forEach(el=>{
-        el.addEventListener('click', ()=>{
-          if(answered[qi]) return;
-          optEls.forEach(e=>e.classList.remove('sel'));
-          el.classList.add('sel'); picked = +el.dataset.i; btn.disabled=false;
-        });
-      });
-      btn.disabled = true;
-      btn.addEventListener('click', ()=>{
-        if(picked<0 || answered[qi]) return;
-        answered[qi]=true;
-        const ok = picked === q.answer;
-        iscorrect[qi]=ok;
-        optEls.forEach((el,i)=>{
-          el.classList.add('locked');
-          if(i===q.answer) el.classList.add('correct');
-          if(i===picked && i!==q.answer) el.classList.add('wrong');
+          if(i === q.answer) el.classList.add('correct');
+          if(i === picked && i !== q.answer) el.classList.add('wrong');
         });
         btn.disabled = true;
         fb.className = 'feedback show ' + (ok?'ok':'no');
         fb.innerHTML = (ok? '<b>Correct!</b>' : '<b>Not quite.</b>') + (q.explain ? ' ' + esc(q.explain) : '');
-        updateProg();
-      });
-    }
+      }
+      updateProg();
+    });
   }
 });
+
 function updateProg(){
   const done = answered.filter(Boolean).length;
   prog.style.width = (done/Q.length*100)+'%';
 }
+
 const submit = document.getElementById('submit');
 const summary = document.getElementById('summary');
 submit.addEventListener('click', ()=>{
+  // Calculate score ONLY over non-survey questions
+  const gradedQuestions = Q.filter(q => !q.survey);
   let correct = 0;
-  for(let i=0;i<Q.length;i++){ if(iscorrect[i]) correct++; }
-  const pct = Math.round(correct/Q.length*100);
+  Q.forEach((q, i) => {
+    if(!q.survey && iscorrect[i]) correct++;
+  });
+  const pct = Math.round(correct / gradedQuestions.length * 100);
 
   // === AUTOMATIC LOGGING TO FIREBASE ===
   const FIREBASE_URL = "https://csd303-practiceproblem3-default-rtdb.firebaseio.com/submissions.json";
@@ -315,9 +366,10 @@ submit.addEventListener('click', ()=>{
     body: JSON.stringify({
       timestamp: new Date().toISOString(),
       score: correct,
-      total: Q.length,
+      total: gradedQuestions.length,
       percentage: pct,
-      answers: iscorrect
+      iscorrect: iscorrect,
+      userResponses: userResponses // <-- STORES RAW SELECTIONS (e.g., 0 or 1 for question 8)
     })
   }).catch(err => console.error("Firebase error:", err));
   // =====================================
@@ -327,7 +379,7 @@ submit.addEventListener('click', ()=>{
           : pct>=80? "Strong work. Review the ones you missed and you're set."
           : pct>=60? "Solid base - revisit the feedback on the missed items."
           : "Worth another pass through the materials";
-  summary.innerHTML = `<div class="score">${correct}<small> / ${Q.length}</small></div>
+  summary.innerHTML = `<div class="score">${correct}<small> / ${gradedQuestions.length}</small></div>
     <div class="msg">${msg}</div>
     <div class="break">${pct}% correct</div>`;
   summary.scrollIntoView({behavior:'smooth'});
